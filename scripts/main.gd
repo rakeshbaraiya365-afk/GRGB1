@@ -256,11 +256,11 @@ func _begin_match() -> void:
 	match_elapsed = 0.0
 	kills = 0
 	for i in range(ENEMY_SPAWNS.size()):
-		var enemy: Node3D = ENEMY_SCRIPT.new()
+		var enemy = ENEMY_SCRIPT.new()
 		enemy.name = "DemoEnemy_%02d" % (i + 1)
-		enemy.set("target_player", player)
+		enemy.target_player = player
 		enemy.position = ENEMY_SPAWNS[i]
-		enemy.connect("defeated", _on_enemy_defeated)
+		enemy.defeated.connect(_on_enemy_defeated)
 		add_child(enemy)
 		enemies.append(enemy)
 	_update_enemy_count()
