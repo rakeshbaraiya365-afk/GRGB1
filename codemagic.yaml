@@ -46,6 +46,10 @@ definitions:
         mkdir -p "$BUILD_DIRECTORY"
         export DEBUG_KEYSTORE_PATH="$BUILD_DIRECTORY/grbg1-debug.keystore"
         keytool -genkeypair -v -keystore "$DEBUG_KEYSTORE_PATH" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+        export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$DEBUG_KEYSTORE_PATH"
+        export GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey
+        export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android
+        export ANDROID_HOME="$ANDROID_SDK_ROOT"
         echo "GODOT_ANDROID_KEYSTORE_DEBUG_PATH=$DEBUG_KEYSTORE_PATH" >> "$CM_ENV"
         echo "GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey" >> "$CM_ENV"
         echo "GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android" >> "$CM_ENV"
