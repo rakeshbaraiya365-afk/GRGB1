@@ -1,44 +1,26 @@
-# GRBG 1 development roadmap
+# GRBG 1 roadmap
 
-## Milestone 1 - Offline combat demo
-- [x] Godot 4 project structure
-- [x] 3D training arena and cover
-- [x] Player collision, movement and camera modes
-- [x] Health, ammo, reload and hitscan fire
-- [x] Five-second local matchmaking demo
-- [x] Six procedural soldier-style AI enemies
-- [x] Enemy detection, chase, line-of-sight attack and damage
-- [x] Enemy elimination, kill counter and match timer
-- [x] Touch HUD buttons
+## Implemented offline demo gameplay
+- [x] Godot 4 project and Android-friendly GL Compatibility renderer
+- [x] Five-second local matchmaking countdown
+- [x] Saurashtra-inspired island blockout and named locations
+- [x] Eight procedural 3D soldier-style AI enemies
+- [x] Enemy detection, chase, simple obstacle sidestep and line-of-sight attacks
+- [x] Player health, movement, jump and sprint
+- [x] First-person / third-person camera modes
+- [x] Touch movement buttons and drag-to-look area
+- [x] Assault rifle, SMG and shotgun demo weapon profiles
+- [x] Reload, ammo and loot pickups
+- [x] Parachute-style opening drop
+- [x] Shrinking safe zone and outside-zone damage
+- [x] Kill counter, match timer, victory / elimination and restart screen
 
-## Milestone 2 - Combat polish
-- [ ] Touch camera-look / aim control
-- [ ] Enemy navigation around obstacles and cover tactics
-- [ ] Player death screen, restart and respawn
-- [ ] Weapon pickup, switching, recoil and hit effects
-- [ ] Animated character rig and original final character assets
-- [ ] Audio, muzzle flash and bullet impact effects
+## Still requires separate production work
+- [ ] Real online matchmaking, accounts and dedicated authoritative server
+- [ ] Real 20-player networking, replication, reconnect and anti-cheat
+- [ ] Final-quality animated character and weapon assets
+- [ ] Full Gujarat-scale terrain, roads, buildings and optimized environment art
+- [ ] Vehicle driving, aircraft sequence, audio, effects and animation polish
+- [ ] Device QA, Android export preset, signing and APK installation test
 
-## Milestone 3 - Battle Royale loop
-- [ ] Gujarat-inspired map blockout and named locations
-- [ ] Loot spawn points and inventory
-- [ ] Safe-zone circle and zone damage
-- [ ] Aircraft and parachute drop
-- [ ] Lobby, profile, squads and settings
-- [ ] Vehicles and missions
-- [ ] Winner / results / reward flow
-
-## Milestone 4 - Online services
-- [ ] Account/authentication service
-- [ ] Authoritative dedicated game server
-- [ ] Real matchmaking and room management
-- [ ] 20-player replication and server validation
-- [ ] Reconnect, latency handling and anti-cheat
-
-## Milestone 5 - Android release
-- [ ] Android export templates and SDK setup
-- [ ] Touch UI and performance testing on devices
-- [ ] Signing configuration
-- [ ] APK build and installation testing
-
-A milestone is only marked complete when it is implemented and verified. The current matchmaking and AI enemies are local offline demo systems, not online multiplayer.
+Only the offline test features above are implemented in this repository. Online multiplayer cannot be delivered by a local Godot-only code change; it needs a deployed backend and server.

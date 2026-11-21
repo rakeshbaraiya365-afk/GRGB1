@@ -5,10 +5,10 @@ signal defeated(enemy: Node3D)
 
 const MOVE_SPEED := 3.4
 const GRAVITY := 18.0
-const DETECT_RANGE := 38.0
-const ATTACK_RANGE := 19.0
-const ATTACK_INTERVAL := 1.35
-const DAMAGE := 7
+const DETECT_RANGE := 48.0
+const ATTACK_RANGE := 22.0
+const ATTACK_INTERVAL := 1.25
+const DAMAGE := 6
 
 var target_player: Node3D
 var health := 120
@@ -60,16 +60,14 @@ func _build_soldier_model() -> void:
 	vest_material = _material(Color(0.30, 0.34, 0.22))
 	var metal := _material(Color(0.10, 0.12, 0.12), 0.55)
 
-	# Boots and legs
 	var boot_mesh := BoxMesh.new()
 	boot_mesh.size = Vector3(0.34, 0.20, 0.48)
 	_part(boot_mesh, Vector3(-0.17, 0.12, -0.04), dark)
 	_part(boot_mesh, Vector3(0.17, 0.12, -0.04), dark)
 	_capsule(0.16, 0.78, Vector3(-0.17, 0.48, 0), uniform)
 	_capsule(0.16, 0.78, Vector3(0.17, 0.48, 0), uniform)
-
-	# Torso, tactical vest and shoulder pads
 	_capsule(0.34, 0.92, Vector3(0, 1.15, 0), uniform)
+
 	var vest := BoxMesh.new()
 	vest.size = Vector3(0.62, 0.60, 0.30)
 	_part(vest, Vector3(0, 1.22, -0.04), vest_material)
@@ -78,17 +76,14 @@ func _build_soldier_model() -> void:
 	shoulder.height = 0.36
 	_part(shoulder, Vector3(-0.39, 1.43, 0), uniform)
 	_part(shoulder, Vector3(0.39, 1.43, 0), uniform)
-
-	# Arms
 	_capsule(0.13, 0.72, Vector3(-0.43, 1.17, -0.03), uniform, Vector3(0, 0, -0.22))
 	_capsule(0.13, 0.72, Vector3(0.43, 1.17, -0.18), uniform, Vector3(0, 0, 0.22))
+
 	var glove := SphereMesh.new()
 	glove.radius = 0.13
 	glove.height = 0.22
 	_part(glove, Vector3(-0.48, 0.82, -0.10), dark)
 	_part(glove, Vector3(0.48, 0.84, -0.30), dark)
-
-	# Head, face and helmet
 	var head := SphereMesh.new()
 	head.radius = 0.22
 	head.height = 0.43
@@ -100,13 +95,9 @@ func _build_soldier_model() -> void:
 	var visor := BoxMesh.new()
 	visor.size = Vector3(0.30, 0.055, 0.10)
 	_part(visor, Vector3(0, 1.88, -0.19), dark)
-
-	# Backpack
 	var pack := BoxMesh.new()
 	pack.size = Vector3(0.40, 0.58, 0.22)
 	_part(pack, Vector3(0, 1.23, 0.24), dark)
-
-	# Rifle silhouette held across the chest
 	var rifle := BoxMesh.new()
 	rifle.size = Vector3(0.13, 0.14, 0.82)
 	_part(rifle, Vector3(0.38, 1.23, -0.48), metal, Vector3(0, 0, -0.10))
@@ -127,9 +118,7 @@ func _build_soldier_model() -> void:
 	add_child(label)
 
 func _physics_process(delta: float) -> void:
-	if target_player == null or not is_instance_valid(target_player):
-		return
-	if target_player.get("health") <= 0:
+	if target_player == null or not is_instance_valid(target_player) or target_player.get("health") <= 0:
 		velocity.x = move_toward(velocity.x, 0.0, MOVE_SPEED * delta)
 		velocity.z = move_toward(velocity.z, 0.0, MOVE_SPEED * delta)
 		_apply_gravity(delta)
@@ -138,12 +127,17 @@ func _physics_process(delta: float) -> void:
 
 	attack_timer = maxf(attack_timer - delta, 0.0)
 	var offset := target_player.global_position - global_position
-	var flat_offset := Vector3(offset.x, 0, offset.z)
+	var flat_offset := Vector3(offset.x, 0.0, offset.z)
 	var distance := flat_offset.length()
-
 	if distance <= DETECT_RANGE:
-		if distance > 1.8:
-			var direction := flat_offset.normalized()
+		var direction := flat_offset.normalized()
+		if distance > 2.2:
+			var look_query := PhysicsRayQueryParameters3D.create(global_position + Vector3.UP, global_position + Vector3.UP + direction * 2.5)
+			look_query.exclude = [get_rid()]
+			var obstacle := get_world_3d().direct_space_state.intersect_ray(look_query)
+			if not obstacle.is_empty() and obstacle.get("collider") != target_player:
+				var side := -1.0 if int(get_instance_id()) % 2 == 0 else 1.0
+				direction = direction.rotated(Vector3.UP, side * PI / 2.6)
 			velocity.x = direction.x * MOVE_SPEED
 			velocity.z = direction.z * MOVE_SPEED
 		else:
@@ -157,7 +151,6 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.x = move_toward(velocity.x, 0.0, MOVE_SPEED * delta)
 		velocity.z = move_toward(velocity.z, 0.0, MOVE_SPEED * delta)
-
 	_apply_gravity(delta)
 	move_and_slide()
 
@@ -174,8 +167,7 @@ func _try_attack() -> void:
 	query.exclude = [get_rid()]
 	var hit := get_world_3d().direct_space_state.intersect_ray(query)
 	if not hit.is_empty() and hit.get("collider") == target_player:
-		if target_player.has_method("take_damage"):
-			target_player.take_damage(DAMAGE)
+		target_player.take_damage(DAMAGE)
 
 func apply_damage(amount: int) -> void:
 	health = maxi(health - amount, 0)
