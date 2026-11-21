@@ -1,0 +1,82 @@
+definitions:
+  environment:
+    godot_environment:
+      vars: &godot_variables
+        GODOT_VERSION: 4.3-stable
+        GODOT_URL: https://github.com/godotengine/godot-builds/releases/download
+        GODOT: Godot.app/Contents/MacOS/Godot
+        PROJECT_PATH: /Users/builder/clone
+        BUILD_DIRECTORY: /Users/builder/Downloads/builds
+        EDITOR_DATA_DIRECTORY: /Users/builder/Library/Application Support/Godot
+        EXPORT_TEMPLATES_DIRECTORY: /Users/builder/Library/Application Support/Godot/export_templates
+        EXPORT_PRESET: Android
+        OUTPUT_FILE: GRBG1.apk
+
+  scripts:
+    - &install_godot
+      name: Install Godot 4.3
+      script: |
+        set -e
+        FILE="Godot_v${GODOT_VERSION}_macos.universal.zip"
+        URL="${GODOT_URL}/${GODOT_VERSION}/${FILE}"
+        curl -L --fail "$URL" -o "$FILE"
+        unzip -q -o "$FILE"
+        chmod +x "$GODOT"
+        "$GODOT" --version
+
+    - &install_godot_export_templates
+      name: Install matching Android export templates
+      script: |
+        set -e
+        FILE="Godot_v${GODOT_VERSION}_export_templates.tpz"
+        URL="${GODOT_URL}/${GODOT_VERSION}/${FILE}"
+        curl -L --fail "$URL" -o "$FILE"
+        mkdir -p "$BUILD_DIRECTORY/template_unpack"
+        unzip -q -o "$FILE" -d "$BUILD_DIRECTORY/template_unpack"
+        TEMPLATE_VERSION=$(echo "$GODOT_VERSION" | sed 's/-/./')
+        TEMPLATE_PATH="$EXPORT_TEMPLATES_DIRECTORY/$TEMPLATE_VERSION"
+        mkdir -p "$TEMPLATE_PATH"
+        cp -R "$BUILD_DIRECTORY/template_unpack/templates/." "$TEMPLATE_PATH/"
+        echo "Godot templates installed at $TEMPLATE_PATH"
+
+    - &export_project
+      name: Export GRBG 1 Android APK
+      script: |
+        set -e
+        mkdir -p "$BUILD_DIRECTORY"
+        export DEBUG_KEYSTORE_PATH="$BUILD_DIRECTORY/grbg1-debug.keystore"
+        keytool -genkeypair -v -keystore "$DEBUG_KEYSTORE_PATH" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+        echo "GODOT_ANDROID_KEYSTORE_DEBUG_PATH=$DEBUG_KEYSTORE_PATH" >> "$CM_ENV"
+        echo "GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey" >> "$CM_ENV"
+        echo "GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android" >> "$CM_ENV"
+        echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> "$CM_ENV"
+        export EXPORT_PATH="$BUILD_DIRECTORY/$OUTPUT_FILE"
+        "$GODOT" --headless --path "$PROJECT_PATH" --export-debug "$EXPORT_PRESET" "$EXPORT_PATH"
+
+    - &gather_files
+      name: Collect APK
+      script: |
+        set -e
+        test -s "$BUILD_DIRECTORY/$OUTPUT_FILE"
+        ls -lh "$BUILD_DIRECTORY/$OUTPUT_FILE"
+
+  artifacts:
+    - &apk_artifact /Users/builder/Downloads/builds/GRBG1.apk
+
+workflows:
+  godot-android-workflow:
+    name: GRBG 1 Android APK
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    working_directory: /Users/builder/clone
+    environment:
+      java: 17
+      vars:
+        <<: *godot_variables
+    scripts:
+      - *install_godot
+      - *install_godot_export_templates
+      - *export_project
+      - *gather_files
+    artifacts:
+      - *apk_artifact

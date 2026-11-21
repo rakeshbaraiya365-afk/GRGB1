@@ -28,3 +28,6 @@ Use Godot Android export templates matching the Godot editor version, Android SD
 
 ## Testing status
 Code has not been run through a Godot editor/runtime test in this environment. Build and test on an Android device before calling it release-ready.
+
+## Codemagic Android APK build
+The repository includes `export_presets.cfg` (Android preset) and `codemagic.yaml` (Godot 4.3 stable / macOS M2 workflow). In Codemagic, add this GitHub repository as an application and start the workflow named **GRBG 1 Android APK**. The workflow creates a temporary debug signing key and exports `GRBG1.apk`. For a production release, replace the temporary debug key with a private release keystore stored in Codemagic secure variables.
