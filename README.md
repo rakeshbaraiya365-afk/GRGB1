@@ -1,22 +1,25 @@
 # GRBG 1
 
-Original 3D Battle Royale prototype built with Godot 4 and GDScript.
+Original Godot 4 / GDScript third-person and first-person battle royale prototype.
 
-## Current build
-- 3D training arena with ground, cover blocks and target dummies.
-- Third-person and first-person camera toggle.
-- Player movement, jump, sprint, health, ammo, reload and hitscan firing.
-- Mobile HUD buttons for movement, jump, fire, reload and camera switching.
-- Target dummy health and destruction.
+## Current demo
+- START button opens a five-second matchmaking countdown.
+- The local demo match begins automatically after the countdown.
+- Six procedural 3D soldier-style AI enemies spawn into the arena.
+- Enemies detect and chase the player, turn toward the player, and fire when they have line of sight and are in range.
+- Player can shoot and eliminate enemies; enemy health, player health, ammo, kills and match timer are shown.
+- Touch HUD includes movement, jump, fire, reload and camera switching.
+- The soldier models are built from original Godot 3D primitives at runtime; they are prototype visuals, not final animated character assets.
 
 ## Run
 1. Install Godot 4.3 or newer.
-2. Open this repository folder using Godot's Project Manager.
-3. Open and run `scenes/main.tscn`.
+2. Open this repository folder in Godot Project Manager.
+3. Run `scenes/main.tscn`.
+4. Press START. After five seconds the offline AI demo match starts.
 
 ## Controls
-- Keyboard: WASD / arrow keys, Space to jump, Shift to sprint, left mouse button to fire, R to reload, V to switch camera.
+- Keyboard: WASD / arrows, Space to jump, Shift to sprint, left mouse button to fire, R to reload, V to switch camera.
 - Touch: use the on-screen movement, jump, fire, reload and camera buttons.
 
-## Important
-This is the first playable offline prototype, not the finished online game. It does not yet include accounts, lobby, matchmaking, real 20-player networking, parachute drop, vehicles, production character models, anti-cheat or a final Gujarat map. Online multiplayer requires a server-authoritative backend and separate testing.
+## Demo limitations
+Matchmaking is a local five-second demo timer, not a real online matchmaking service. The six enemies are local AI, not human players. Real 20-player multiplayer, authoritative servers, accounts, lobby services, final Gujarat map, parachute, vehicles, animations, sound, anti-cheat and Android release testing are still future work. This project has not yet been verified by a Godot runtime test in this environment.

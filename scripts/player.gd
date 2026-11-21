@@ -114,7 +114,7 @@ func jump() -> void:
 		velocity.y = JUMP_VELOCITY
 
 func shoot() -> void:
-	if fire_cooldown > 0.0 or reload_timer > 0.0:
+	if health <= 0 or fire_cooldown > 0.0 or reload_timer > 0.0:
 		return
 	if magazine <= 0:
 		reload_weapon()
@@ -139,6 +139,8 @@ func _finish_reload() -> void:
 	ammo_changed.emit(magazine, reserve_ammo)
 
 func take_damage(amount: int) -> void:
+	if health <= 0:
+		return
 	health = maxi(health - amount, 0)
 	health_changed.emit(health, max_health)
 	if health <= 0:

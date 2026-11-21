@@ -1,31 +1,37 @@
 # GRBG 1 development roadmap
 
-## Milestone 1 - Offline playable prototype
+## Milestone 1 - Offline combat demo
 - [x] Godot 4 project structure
 - [x] 3D training arena and cover
 - [x] Player collision, movement and camera modes
 - [x] Health, ammo, reload and hitscan fire
-- [x] Target dummy damage
-- [x] Touch HUD controls
+- [x] Five-second local matchmaking demo
+- [x] Six procedural soldier-style AI enemies
+- [x] Enemy detection, chase, line-of-sight attack and damage
+- [x] Enemy elimination, kill counter and match timer
+- [x] Touch HUD buttons
 
-## Milestone 2 - Core combat
-- [ ] Aim/look controls for touch and mouse
-- [ ] Enemy AI navigation, detection and attack
-- [ ] Player damage feedback, death and respawn
-- [ ] Weapon pickup, switching and recoil
-- [ ] Animation rig and original character assets
+## Milestone 2 - Combat polish
+- [ ] Touch camera-look / aim control
+- [ ] Enemy navigation around obstacles and cover tactics
+- [ ] Player death screen, restart and respawn
+- [ ] Weapon pickup, switching, recoil and hit effects
+- [ ] Animated character rig and original final character assets
+- [ ] Audio, muzzle flash and bullet impact effects
 
 ## Milestone 3 - Battle Royale loop
-- [ ] Gujarat-inspired map blockout
+- [ ] Gujarat-inspired map blockout and named locations
 - [ ] Loot spawn points and inventory
 - [ ] Safe-zone circle and zone damage
-- [ ] Match start, elimination and winner flow
-- [ ] Lobby, profile and settings
+- [ ] Aircraft and parachute drop
+- [ ] Lobby, profile, squads and settings
+- [ ] Vehicles and missions
+- [ ] Winner / results / reward flow
 
 ## Milestone 4 - Online services
 - [ ] Account/authentication service
 - [ ] Authoritative dedicated game server
-- [ ] Matchmaking and room management
+- [ ] Real matchmaking and room management
 - [ ] 20-player replication and server validation
 - [ ] Reconnect, latency handling and anti-cheat
 
@@ -35,4 +41,4 @@
 - [ ] Signing configuration
 - [ ] APK build and installation testing
 
-A milestone is only marked complete when it is implemented and verified. The online features above are not part of the current prototype.
+A milestone is only marked complete when it is implemented and verified. The current matchmaking and AI enemies are local offline demo systems, not online multiplayer.
