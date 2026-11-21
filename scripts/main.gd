@@ -27,6 +27,7 @@ var match_elapsed := 0.0
 var kills := 0
 var zone_radius := 48.0
 var zone_elapsed := 0.0
+var zone_damage_timer := 0.0
 var player: GRBGPlayer
 var enemies: Array[Node3D] = []
 var pickups: Array[Node3D] = []
@@ -68,9 +69,12 @@ func _process(delta: float) -> void:
 			zone_radius = maxf(14.0, zone_radius - 1.4)
 			zone_disc.scale = Vector3(zone_radius, 1.0, zone_radius)
 		zone_label.text = "SAFE ZONE: %.0f m" % zone_radius
-		if Vector2(player.global_position.x, player.global_position.z).length() > zone_radius:
-			player.take_damage(5)
-			status_label.text = "WARNING: OUTSIDE SAFE ZONE!"
+		zone_damage_timer += delta
+		if zone_damage_timer >= 1.0:
+			zone_damage_timer = 0.0
+			if Vector2(player.global_position.x, player.global_position.z).length() > zone_radius:
+				player.take_damage(5)
+				status_label.text = "WARNING: OUTSIDE SAFE ZONE!"
 		_check_pickups()
 		_update_enemy_count()
 

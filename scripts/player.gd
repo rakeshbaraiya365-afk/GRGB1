@@ -254,7 +254,7 @@ func set_camera_mode(first_person: bool) -> void:
 		camera.fov = 75.0
 		if body_mesh:
 			body_mesh.visible = true
-	camera.look_at(camera_pivot.global_position + Vector3(0, 0.0, -12.0), Vector3.UP)
+	camera.look_at(camera_pivot.global_position - camera_pivot.global_transform.basis.z * 12.0, Vector3.UP)
 
 func toggle_camera() -> void:
 	set_camera_mode(not camera_is_first_person)
