@@ -1,6 +1,7 @@
 extends Node3D
 
 const PLAYER_SCRIPT = preload("res://scripts/player.gd")
+const MAP_SCRIPT = preload("res://scripts/island_map.gd")
 const ENEMY_SCRIPT = preload("res://scripts/enemy_ai.gd")
 const LOOK_SCRIPT = preload("res://scripts/look_area.gd")
 const LOOT_SCRIPT = preload("res://scripts/loot_pickup.gd")
@@ -87,52 +88,23 @@ func _build_world() -> void:
 	var env := Environment.new()
 	env.background_mode = Environment.BG_SKY
 	env.sky = Sky.new()
-	env.sky.sky_material = ProceduralSkyMaterial.new()
+	var sky_material := ProceduralSkyMaterial.new()
+	sky_material.sky_top_color = Color(0.035, 0.12, 0.19)
+	sky_material.sky_horizon_color = Color(0.78, 0.52, 0.31)
+	env.sky.sky_material = sky_material
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	environment.environment = env
-
 	add_child(environment)
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-48, -32, 0)
-	sun.light_energy = 1.25
+	sun.light_energy = 1.35
 	add_child(sun)
 
-	var ground := StaticBody3D.new()
-	ground.name = "SaurashtraIslandGround"
-	var ground_mesh := MeshInstance3D.new()
-	var plane := PlaneMesh.new()
-	plane.size = Vector2(110, 110)
-	ground_mesh.mesh = plane
-	var ground_material := StandardMaterial3D.new()
-	ground_material.albedo_color = Color(0.30, 0.38, 0.24)
-	ground_material.roughness = 1.0
-	ground_mesh.material_override = ground_material
-	ground.add_child(ground_mesh)
-	var ground_collision := CollisionShape3D.new()
-	var ground_shape := BoxShape3D.new()
-	ground_shape.size = Vector3(110, 0.5, 110)
-	ground_collision.shape = ground_shape
-	ground_collision.position.y = -0.25
-	ground.add_child(ground_collision)
-	add_child(ground)
+	var island := MAP_SCRIPT.new()
+	island.name = "SaurashtraBattleIsland"
+	add_child(island)
 
-	_add_building("MAHUVA DOCKS", Vector3(-23, 0, -22), Vector3(9, 5, 8), Color(0.48, 0.39, 0.29))
-	_add_building("SAURASHTRA VILLAGE", Vector3(23, 0, -22), Vector3(10, 6, 9), Color(0.52, 0.46, 0.34))
-	_add_building("COASTAL OUTPOST", Vector3(0, 0, -43), Vector3(13, 4, 7), Color(0.35, 0.42, 0.44))
-
-	var cover_positions := [
-		Vector3(-13, 0, -9), Vector3(13, 0, -9),
-		Vector3(-13, 0, -23), Vector3(13, 0, -23),
-		Vector3(-6, 0, -34), Vector3(7, 0, -35),
-		Vector3(-19, 0, -17), Vector3(19, 0, -17),
-		Vector3(-27, 0, 2), Vector3(27, 0, 2),
-		Vector3(-30, 0, -36), Vector3(30, 0, -36)
-	]
-	for position in cover_positions:
-		_add_cover(position)
-
-	# Soft translucent safe-zone disc: its edge shrinks during the demo match.
 	zone_disc = MeshInstance3D.new()
 	var disc := CylinderMesh.new()
 	disc.top_radius = 1.0
