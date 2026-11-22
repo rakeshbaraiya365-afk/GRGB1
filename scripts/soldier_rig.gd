@@ -112,6 +112,7 @@ func _build_rig() -> void:
 	_mesh(rifle, barrel, Vector3(0, 0, -0.51), metal, Vector3.ONE)
 	muzzle = _mesh(rifle, SphereMesh.new(), Vector3(0, 0, -0.72), _mat(Color(1.0, 0.55, 0.12), 0.2, 0.0))
 	muzzle.scale = Vector3.ZERO
+	set_weapon(weapon_index)
 
 func set_motion(speed: float, aiming: bool = false, firing: bool = false) -> void:
 	movement_speed = clampf(speed, 0.0, 1.0)
