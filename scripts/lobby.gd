@@ -377,8 +377,8 @@ func _select_weapon(index: int) -> void:
 	cfg.save("user://grbg_profile.cfg")
 	var names := ["ASSAULT RIFLE", "SMG", "SHOTGUN"]
 	_set_status("STARTING WEAPON SAVED: " + names[clampi(index, 0, 2)])
-	if is_instance_valid(section_overlay):
-		section_overlay.queue_free()
+	if is_instance_valid(section_layer):
+		section_layer.queue_free()
 
 func _save_profile() -> void:
 	var cfg := ConfigFile.new()
