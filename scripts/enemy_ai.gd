@@ -9,12 +9,14 @@ const DETECT_RANGE := 48.0
 const ATTACK_RANGE := 22.0
 const ATTACK_INTERVAL := 1.25
 const DAMAGE := 6
+const RIG_SCRIPT = preload("res://scripts/soldier_rig.gd")
 
 var target_player: Node3D
 var health := 120
 var attack_timer := 1.0
 var label: Label3D
 var vest_material: StandardMaterial3D
+var soldier_rig: GRBGSoldierRig
 
 func _ready() -> void:
 	_build_collision()
@@ -53,69 +55,19 @@ func _capsule(radius: float, height: float, position: Vector3, material: Materia
 	_part(mesh, position, material, rotation)
 
 func _build_soldier_model() -> void:
-	var uniform := _material(Color(0.20, 0.27, 0.18))
-	var dark := _material(Color(0.075, 0.09, 0.075))
-	var skin := _material(Color(0.55, 0.36, 0.24))
-	var helmet_mat := _material(Color(0.13, 0.19, 0.13), 0.08)
-	vest_material = _material(Color(0.30, 0.34, 0.22))
-	var metal := _material(Color(0.10, 0.12, 0.12), 0.55)
-
-	var boot_mesh := BoxMesh.new()
-	boot_mesh.size = Vector3(0.34, 0.20, 0.48)
-	_part(boot_mesh, Vector3(-0.17, 0.12, -0.04), dark)
-	_part(boot_mesh, Vector3(0.17, 0.12, -0.04), dark)
-	_capsule(0.16, 0.78, Vector3(-0.17, 0.48, 0), uniform)
-	_capsule(0.16, 0.78, Vector3(0.17, 0.48, 0), uniform)
-	_capsule(0.34, 0.92, Vector3(0, 1.15, 0), uniform)
-
-	var vest := BoxMesh.new()
-	vest.size = Vector3(0.62, 0.60, 0.30)
-	_part(vest, Vector3(0, 1.22, -0.04), vest_material)
-	var shoulder := SphereMesh.new()
-	shoulder.radius = 0.19
-	shoulder.height = 0.36
-	_part(shoulder, Vector3(-0.39, 1.43, 0), uniform)
-	_part(shoulder, Vector3(0.39, 1.43, 0), uniform)
-	_capsule(0.13, 0.72, Vector3(-0.43, 1.17, -0.03), uniform, Vector3(0, 0, -0.22))
-	_capsule(0.13, 0.72, Vector3(0.43, 1.17, -0.18), uniform, Vector3(0, 0, 0.22))
-
-	var glove := SphereMesh.new()
-	glove.radius = 0.13
-	glove.height = 0.22
-	_part(glove, Vector3(-0.48, 0.82, -0.10), dark)
-	_part(glove, Vector3(0.48, 0.84, -0.30), dark)
-	var head := SphereMesh.new()
-	head.radius = 0.22
-	head.height = 0.43
-	_part(head, Vector3(0, 1.83, 0), skin)
-	var helmet := SphereMesh.new()
-	helmet.radius = 0.25
-	helmet.height = 0.25
-	_part(helmet, Vector3(0, 2.00, 0.015), helmet_mat)
-	var visor := BoxMesh.new()
-	visor.size = Vector3(0.30, 0.055, 0.10)
-	_part(visor, Vector3(0, 1.88, -0.19), dark)
-	var pack := BoxMesh.new()
-	pack.size = Vector3(0.40, 0.58, 0.22)
-	_part(pack, Vector3(0, 1.23, 0.24), dark)
-	var rifle := BoxMesh.new()
-	rifle.size = Vector3(0.13, 0.14, 0.82)
-	_part(rifle, Vector3(0.38, 1.23, -0.48), metal, Vector3(0, 0, -0.10))
-	var barrel := CylinderMesh.new()
-	barrel.top_radius = 0.035
-	barrel.bottom_radius = 0.035
-	barrel.height = 0.50
-	_part(barrel, Vector3(0.38, 1.23, -1.10), metal, Vector3(PI / 2.0, 0, 0))
-	var stock := BoxMesh.new()
-	stock.size = Vector3(0.15, 0.19, 0.22)
-	_part(stock, Vector3(0.38, 1.23, -0.05), dark)
-
+	soldier_rig = RIG_SCRIPT.new()
+	soldier_rig.name = "AnimatedEnemySoldier"
+	add_child(soldier_rig)
 	label = Label3D.new()
 	label.text = "ENEMY 120 HP"
 	label.position = Vector3(0, 2.35, 0)
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.font_size = 28
 	add_child(label)
+
+func _process(_delta: float) -> void:
+	if is_instance_valid(soldier_rig):
+		soldier_rig.set_motion(Vector2(velocity.x, velocity.z).length() / MOVE_SPEED)
 
 func _physics_process(delta: float) -> void:
 	if target_player == null or not is_instance_valid(target_player) or target_player.get("health") <= 0:
