@@ -100,7 +100,7 @@ func _build_coast_and_roads() -> void:
 		stripe.position.y = 0.04
 		add_child(stripe)
 
-func _building(pos: Vector3, size: Vector3, wall: Color, roof: Color) -> void:
+func _building(pos: Vector3, size: Vector3, wall: Color, roof: Color, title: String) -> void:
 	var building := StaticBody3D.new()
 	building.position = pos
 	var walls := MeshInstance3D.new()
@@ -123,12 +123,18 @@ func _building(pos: Vector3, size: Vector3, wall: Color, roof: Color) -> void:
 	collision.shape = collider
 	collision.position.y = size.y * 0.5
 	building.add_child(collision)
+	var sign := Label3D.new()
+	sign.text = title
+	sign.position = Vector3(0, size.y + 1.2, -size.z * 0.5 - 0.1)
+	sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	sign.font_size = 28
+	building.add_child(sign)
 	add_child(building)
 	_static_box(self, pos + Vector3(0, 0, size.z * 0.5 + 0.18), Vector3(1.2, 1.65, 0.22), Color(0.19, 0.12, 0.075), false)
 
 func _build_landmarks() -> void:
 	# Mahuva docks: warehouse, pier, containers and crane frame.
-	_building(Vector3(-24, 0, -23), Vector3(10, 5, 8), Color(0.48, 0.40, 0.29), Color(0.22, 0.25, 0.25))
+	_building(Vector3(-24, 0, -23), Vector3(10, 5, 8), Color(0.48, 0.40, 0.29), Color(0.22, 0.25, 0.25), "MAHUVA DOCKS")
 	for i in range(3):
 		_static_box(self, Vector3(-33 + i * 3.1, 0, -12), Vector3(2.7, 2.6, 2.2), [Color(0.58,0.22,0.12), Color(0.15,0.32,0.42), Color(0.62,0.49,0.16)][i])
 	_static_box(self, Vector3(-37, 0, -5), Vector3(2.5, 0.55, 14), WOOD)
@@ -137,9 +143,9 @@ func _build_landmarks() -> void:
 	_static_box(self, Vector3(-37, 3.5, -5), Vector3(4.2, 0.22, 0.22), Color(0.17,0.18,0.17))
 
 	# Saurashtra village compound with multiple houses and a water tank.
-	_building(Vector3(23, 0, -24), Vector3(8, 4, 7), Color(0.61,0.49,0.34), Color(0.32,0.20,0.12))
-	_building(Vector3(32, 0, -15), Vector3(6, 3.5, 6), Color(0.56,0.48,0.36), Color(0.25,0.22,0.17))
-	_building(Vector3(18, 0, -10), Vector3(5, 3.2, 5), Color(0.58,0.53,0.40), Color(0.30,0.24,0.17))
+	_building(Vector3(23, 0, -24), Vector3(8, 4, 7), Color(0.61,0.49,0.34), Color(0.32,0.20,0.12), "SAURASHTRA VILLAGE")
+	_building(Vector3(32, 0, -15), Vector3(6, 3.5, 6), Color(0.56,0.48,0.36), Color(0.25,0.22,0.17), "VILLAGE EAST")
+	_building(Vector3(18, 0, -10), Vector3(5, 3.2, 5), Color(0.58,0.53,0.40), Color(0.30,0.24,0.17), "OLD QUARTER")
 	_static_box(self, Vector3(29, 0, -31), Vector3(1.4, 5.2, 1.4), Color(0.42,0.47,0.46))
 	var tank := MeshInstance3D.new()
 	var cylinder := CylinderMesh.new()
@@ -152,7 +158,7 @@ func _build_landmarks() -> void:
 	add_child(tank)
 
 	# Coastal outpost and watch tower.
-	_building(Vector3(0, 0, -43), Vector3(13, 4, 7), Color(0.34,0.41,0.43), Color(0.18,0.23,0.25))
+	_building(Vector3(0, 0, -43), Vector3(13, 4, 7), Color(0.34,0.41,0.43), Color(0.18,0.23,0.25), "COASTAL OUTPOST")
 	_static_box(self, Vector3(0, 0, -33), Vector3(1.4, 7.5, 1.4), Color(0.25,0.29,0.27))
 	_static_box(self, Vector3(0, 7.5, -33), Vector3(3.5, 0.22, 3.5), Color(0.18,0.22,0.20))
 	_static_box(self, Vector3(0, 8.2, -33), Vector3(0.22, 1.1, 0.22), Color(0.85,0.35,0.13))
