@@ -11,6 +11,7 @@ var animation_clock := 0.0
 var movement_speed := 0.0
 var firing_flash := 0.0
 var base_tint := Color(0.20, 0.29, 0.19)
+var uniform_material: StandardMaterial3D
 
 func _ready() -> void:
 	_build_rig()
@@ -44,6 +45,7 @@ func _capsule(parent: Node3D, pos: Vector3, radius: float, height: float, materi
 
 func _build_rig() -> void:
 	var uniform := _mat(base_tint)
+	uniform_material = uniform
 	var dark := _mat(Color(0.055, 0.072, 0.065))
 	var fabric := _mat(Color(0.31, 0.34, 0.25))
 	var skin := _mat(Color(0.48, 0.31, 0.21))
@@ -119,6 +121,8 @@ func set_motion(speed: float, aiming: bool = false, firing: bool = false) -> voi
 
 func set_uniform_tint(color: Color) -> void:
 	base_tint = color
+	if is_instance_valid(uniform_material):
+		uniform_material.albedo_color = color
 
 func _process(delta: float) -> void:
 	animation_clock += delta
