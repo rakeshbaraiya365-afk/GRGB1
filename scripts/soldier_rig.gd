@@ -159,6 +159,6 @@ func _process(delta: float) -> void:
 	rifle.position.z = lerpf(rifle.position.z, rifle_rest_z + (0.10 if firing_flash > 0.0 else 0.0), 0.42)
 	if firing_flash > 0.0:
 		firing_flash -= delta
-		muzzle.scale = Vector3.ONE * (1.0 + randf() * 0.5)
+		muzzle.scale = Vector3.ONE * (0.12 + randf() * 0.06)
 	else:
 		muzzle.scale = Vector3.ZERO
