@@ -2,6 +2,7 @@ extends Node3D
 
 var showcase: Node3D
 var status_label: Label
+var section_overlay: Control
 
 const ACCENT := Color(0.95, 0.48, 0.16)
 const PANEL := Color(0.035, 0.055, 0.075, 0.94)
@@ -199,7 +200,7 @@ func _build_interface() -> void:
 		nav.add_theme_stylebox_override("hover", _panel_style(Color(0.15, 0.10, 0.075, 0.95), 7))
 		nav.add_theme_color_override("font_color", Color(0.87, 0.91, 0.92))
 		left.add_child(nav)
-		nav.pressed.connect(func(): _set_status(item + " will be available in a future update."))
+		nav.pressed.connect(_open_section.bind(item))
 
 	var right := PanelContainer.new()
 	right.set_anchors_preset(Control.PRESET_RIGHT_WIDE)
@@ -284,6 +285,107 @@ func _build_interface() -> void:
 	disclaimer.add_theme_font_size_override("font_size", 10)
 	disclaimer.add_theme_color_override("font_color", Color(0.72, 0.77, 0.78))
 	root.add_child(disclaimer)
+
+func _open_section(section: String) -> void:
+	if is_instance_valid(section_overlay):
+		section_overlay.queue_free()
+	section_overlay = Control.new()
+	section_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	section_overlay.z_index = 20
+	add_child(section_overlay)
+	var shade := ColorRect.new()
+	shade.color = Color(0.005, 0.012, 0.022, 0.82)
+	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	section_overlay.add_child(shade)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	section_overlay.add_child(center)
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(390, 390)
+	panel.add_theme_stylebox_override("panel", _panel_style(PANEL, 14))
+	center.add_child(panel)
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 12)
+	panel.add_child(column)
+	var heading := Label.new()
+	heading.text = section
+	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	heading.add_theme_font_size_override("font_size", 25)
+	heading.add_theme_color_override("font_color", ACCENT)
+	column.add_child(heading)
+	var detail := Label.new()
+	detail.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	detail.add_theme_color_override("font_color", MUTED)
+	column.add_child(detail)
+
+	match section:
+		"CHARACTER":
+			detail.text = "Choose your operator appearance. Your choice is saved on this device."
+			_add_choice_button(column, "RECON  •  FIELD GREEN", _select_character.bind("RECON", Color(0.20, 0.29, 0.19)))
+			_add_choice_button(column, "DESERT  •  SAND", _select_character.bind("DESERT", Color(0.55, 0.40, 0.23)))
+			_add_choice_button(column, "SHADOW  •  DARK", _select_character.bind("SHADOW", Color(0.12, 0.16, 0.19)))
+		"WEAPONS":
+			detail.text = "Choose your starting weapon for the next offline training match."
+			_add_choice_button(column, "ASSAULT RIFLE  •  BALANCED", _select_weapon.bind(0))
+			_add_choice_button(column, "SMG  •  FAST FIRE", _select_weapon.bind(1))
+			_add_choice_button(column, "SHOTGUN  •  CLOSE RANGE", _select_weapon.bind(2))
+		"VAULT":
+			var cfg := ConfigFile.new()
+			cfg.load("user://grbg_profile.cfg")
+			var operator_name: String = str(cfg.get_value("profile", "character_name", "RECON"))
+			var weapon_index: int = int(cfg.get_value("profile", "weapon_index", 0))
+			var weapon_names := ["ASSAULT RIFLE", "SMG", "SHOTGUN"]
+			detail.text = "SAVED LOADOUT\nOPERATOR: %s\nPRIMARY: %s\n\nYour selected gear will be used when the match starts." % [operator_name, weapon_names[clampi(weapon_index, 0, 2)]]
+			_add_choice_button(column, "SAVE LOADOUT", _save_profile)
+		"LOBBY":
+			detail.text = "SAURASHTRA ISLAND\n8 AI opponents • Solo training\nSelect your operator and starting weapon before deployment."
+		var close := Button.new()
+	close.text = "CLOSE"
+	close.custom_minimum_size = Vector2(0, 48)
+	close.pressed.connect(func():
+		if is_instance_valid(section_overlay):
+			section_overlay.queue_free()
+	)
+	column.add_child(close)
+
+func _add_choice_button(parent: VBoxContainer, caption: String, action: Callable) -> void:
+	var choice := Button.new()
+	choice.text = caption
+	choice.custom_minimum_size = Vector2(0, 48)
+	choice.add_theme_font_size_override("font_size", 15)
+	choice.add_theme_stylebox_override("normal", _panel_style(Color(0.08, 0.12, 0.14), 7))
+	choice.add_theme_stylebox_override("hover", _panel_style(Color(0.18, 0.13, 0.09), 7))
+	choice.pressed.connect(action)
+	parent.add_child(choice)
+
+func _select_character(character_name: String, color: Color) -> void:
+	var cfg := ConfigFile.new()
+	cfg.load("user://grbg_profile.cfg")
+	cfg.set_value("profile", "character_name", character_name)
+	cfg.set_value("profile", "character_color", color)
+	cfg.save("user://grbg_profile.cfg")
+	_set_status("OPERATOR SAVED: " + character_name)
+	if is_instance_valid(section_overlay):
+		section_overlay.queue_free()
+
+func _select_weapon(index: int) -> void:
+	var cfg := ConfigFile.new()
+	cfg.load("user://grbg_profile.cfg")
+	cfg.set_value("profile", "weapon_index", clampi(index, 0, 2))
+	cfg.save("user://grbg_profile.cfg")
+	var names := ["ASSAULT RIFLE", "SMG", "SHOTGUN"]
+	_set_status("STARTING WEAPON SAVED: " + names[clampi(index, 0, 2)])
+	if is_instance_valid(section_overlay):
+		section_overlay.queue_free()
+
+func _save_profile() -> void:
+	var cfg := ConfigFile.new()
+	cfg.load("user://grbg_profile.cfg")
+	cfg.save("user://grbg_profile.cfg")
+	_set_status("LOADOUT SAVED ON THIS DEVICE")
+	if is_instance_valid(section_overlay):
+		section_overlay.queue_free()
 
 func _panel_style(color: Color, radius: int) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
