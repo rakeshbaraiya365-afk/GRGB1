@@ -3,6 +3,7 @@ extends Node3D
 var showcase: Node3D
 var status_label: Label
 var section_overlay: Control
+var section_layer: CanvasLayer
 
 const RIG_SCRIPT = preload("res://scripts/soldier_rig.gd")
 const ACCENT := Color(0.95, 0.48, 0.16)
@@ -88,6 +89,9 @@ func _build_stage() -> void:
 	# Reuse the articulated soldier model in the lobby preview.
 	showcase = RIG_SCRIPT.new()
 	showcase.name = "OperatorShowcase"
+	var saved_profile := ConfigFile.new()
+	if saved_profile.load("user://grbg_profile.cfg") == OK:
+		showcase.set_uniform_tint(saved_profile.get_value("profile", "character_color", Color(0.20, 0.29, 0.19)))
 	showcase.position.y = 0.22
 	showcase.scale = Vector3(1.12, 1.12, 1.12)
 	add_child(showcase)
@@ -274,7 +278,7 @@ func _build_interface() -> void:
 	bottom_row.add_child(start)
 
 	var disclaimer := Label.new()
-	disclaimer.text = "CHARACTER DISPLAY IS A TEMPORARY PLACEHOLDER • ONLINE MULTIPLAYER NOT YET ENABLED"
+	disclaimer.text = "PROCEDURAL TACTICAL OPERATOR • OFFLINE TEST BUILD • ONLINE MULTIPLAYER NOT YET ENABLED"
 	disclaimer.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 	disclaimer.position = Vector2(24, -132)
 	disclaimer.add_theme_font_size_override("font_size", 10)
@@ -282,12 +286,14 @@ func _build_interface() -> void:
 	root.add_child(disclaimer)
 
 func _open_section(section: String) -> void:
-	if is_instance_valid(section_overlay):
-		section_overlay.queue_free()
+	if is_instance_valid(section_layer):
+		section_layer.queue_free()
+	section_layer = CanvasLayer.new()
+	add_child(section_layer)
 	section_overlay = Control.new()
 	section_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	section_overlay.z_index = 20
-	add_child(section_overlay)
+	section_layer.add_child(section_overlay)
 	var shade := ColorRect.new()
 	shade.color = Color(0.005, 0.012, 0.022, 0.82)
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -339,8 +345,8 @@ func _open_section(section: String) -> void:
 	close.text = "CLOSE"
 	close.custom_minimum_size = Vector2(0, 48)
 	close.pressed.connect(func():
-		if is_instance_valid(section_overlay):
-			section_overlay.queue_free()
+		if is_instance_valid(section_layer):
+			section_layer.queue_free()
 	)
 	column.add_child(close)
 
@@ -361,8 +367,8 @@ func _select_character(character_name: String, color: Color) -> void:
 	cfg.set_value("profile", "character_color", color)
 	cfg.save("user://grbg_profile.cfg")
 	_set_status("OPERATOR SAVED: " + character_name)
-	if is_instance_valid(section_overlay):
-		section_overlay.queue_free()
+	if is_instance_valid(section_layer):
+		section_layer.queue_free()
 
 func _select_weapon(index: int) -> void:
 	var cfg := ConfigFile.new()
