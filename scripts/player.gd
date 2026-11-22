@@ -10,6 +10,7 @@ const WALK_SPEED := 6.0
 const SPRINT_SPEED := 9.0
 const JUMP_VELOCITY := 5.5
 const GRAVITY := 18.0
+const RIG_SCRIPT = preload("res://scripts/soldier_rig.gd")
 const MAGAZINE_SIZE := 30
 const RELOAD_SECONDS := 1.25
 const WEAPONS := [
@@ -33,7 +34,8 @@ var parachute_visual: Node3D
 
 var camera: Camera3D
 var camera_pivot: Node3D
-var body_mesh: MeshInstance3D
+var body_mesh: Node3D
+var soldier_rig: GRBGSoldierRig
 var weapon_label := "ASSAULT RIFLE"
 
 func _ready() -> void:
@@ -54,18 +56,15 @@ func _build_collision() -> void:
 	add_child(collision)
 
 func _build_visual() -> void:
-	body_mesh = MeshInstance3D.new()
-	var capsule_mesh := CapsuleMesh.new()
-	capsule_mesh.radius = 0.42
-	capsule_mesh.height = 1.8
-	body_mesh.mesh = capsule_mesh
-	body_mesh.position.y = 0.9
-	var material := StandardMaterial3D.new()
-	material.albedo_color = Color(0.12, 0.42, 0.72)
-	material.metallic = 0.12
-	material.roughness = 0.55
-	body_mesh.material_override = material
-	add_child(body_mesh)
+	var config := ConfigFile.new()
+	var skin := Color(0.20, 0.29, 0.19)
+	if config.load("user://grbg_profile.cfg") == OK:
+		skin = config.get_value("profile", "character_color", skin)
+	soldier_rig = RIG_SCRIPT.new()
+	soldier_rig.name = "AnimatedSoldier"
+	soldier_rig.set_uniform_tint(skin)
+	body_mesh = soldier_rig
+	add_child(soldier_rig)
 
 func _build_camera() -> void:
 	camera_pivot = Node3D.new()
@@ -117,6 +116,8 @@ func _physics_process(delta: float) -> void:
 		velocity.z = move_toward(velocity.z, 0.0, speed * 5.0 * delta)
 
 	move_and_slide()
+	if is_instance_valid(soldier_rig):
+		soldier_rig.set_motion(Vector2(velocity.x, velocity.z).length() / SPRINT_SPEED)
 
 	if Input.is_action_just_pressed("fire"):
 		shoot()
@@ -153,6 +154,8 @@ func shoot() -> void:
 	var origin := camera.global_position
 	var direction := -camera.global_transform.basis.z
 	fire_requested.emit(origin, direction, int(weapon.damage))
+	if is_instance_valid(soldier_rig):
+		soldier_rig.set_motion(Vector2(velocity.x, velocity.z).length() / SPRINT_SPEED, false, true)
 	ammo_changed.emit(magazine, reserve_ammo)
 
 func reload_weapon() -> void:
@@ -168,7 +171,10 @@ func _finish_reload() -> void:
 	ammo_changed.emit(magazine, reserve_ammo)
 
 func switch_weapon() -> void:
-	current_weapon_index = (current_weapon_index + 1) % WEAPONS.size()
+	select_weapon((current_weapon_index + 1) % WEAPONS.size())
+
+func select_weapon(index: int) -> void:
+	current_weapon_index = clampi(index, 0, WEAPONS.size() - 1)
 	var weapon: Dictionary = WEAPONS[current_weapon_index]
 	weapon_label = str(weapon.name)
 	magazine = int(weapon.mag)
