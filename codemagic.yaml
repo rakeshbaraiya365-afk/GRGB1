@@ -71,6 +71,13 @@ definitions:
         export JAVA_HOME=$(/usr/libexec/java_home -v 17)
         export PATH="$JAVA_HOME/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
         export DEBUG_KEYSTORE_PATH="$BUILD_DIRECTORY/grbg1-debug.keystore"
+        test -x "$JAVA_HOME/bin/java"
+        test -x "$ANDROID_SDK_ROOT/platform-tools/adb"
+        test -d "$ANDROID_SDK_ROOT/platforms/android-34"
+        test -d "$ANDROID_SDK_ROOT/build-tools/34.0.0"
+        test -d "$ANDROID_SDK_ROOT/cmdline-tools/latest"
+        test -d "$ANDROID_SDK_ROOT/ndk/23.2.8568313"
+        test -d "$ANDROID_SDK_ROOT/cmake/3.10.2.4988404"
         keytool -genkeypair -v -keystore "$DEBUG_KEYSTORE_PATH" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
         export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$DEBUG_KEYSTORE_PATH"
         export GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey
@@ -83,7 +90,12 @@ definitions:
         export EXPORT_PATH="$BUILD_DIRECTORY/$OUTPUT_FILE"
         echo "Using Android SDK: $ANDROID_HOME"
         echo "Using Java SDK: $JAVA_HOME"
-        "$GODOT" --headless --path "$PROJECT_PATH" --export-debug "$EXPORT_PRESET" "$EXPORT_PATH"
+        echo "Resetting stale Godot 4.3 editor settings and initializing Android paths..."
+        mkdir -p "$EDITOR_DATA_DIRECTORY"
+        rm -f "$EDITOR_DATA_DIRECTORY/editor_settings-4.3.tres"
+        "$ANDROID_HOME/platform-tools/adb" start-server || true
+        "$GODOT" --headless --editor --path "$PROJECT_PATH" --quit
+        "$GODOT" --headless --path "$PROJECT_PATH" --verbose --export-debug "$EXPORT_PRESET" "$EXPORT_PATH"
 
     - &gather_files
       name: Collect APK
