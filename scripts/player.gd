@@ -120,7 +120,7 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 	if is_instance_valid(soldier_rig):
-		soldier_rig.set_motion(Vector2(velocity.x, velocity.z).length() / SPRINT_SPEED)
+		soldier_rig.set_motion(Vector2(velocity.x, velocity.z).length() / SPRINT_SPEED, false, false, not is_on_floor())
 
 	if Input.is_action_just_pressed("fire"):
 		shoot()
@@ -158,7 +158,7 @@ func shoot() -> void:
 	var direction := -camera.global_transform.basis.z
 	fire_requested.emit(origin, direction, int(weapon.damage))
 	if is_instance_valid(soldier_rig):
-		soldier_rig.set_motion(Vector2(velocity.x, velocity.z).length() / SPRINT_SPEED, false, true)
+		soldier_rig.set_motion(Vector2(velocity.x, velocity.z).length() / SPRINT_SPEED, false, true, not is_on_floor())
 	ammo_changed.emit(magazine, reserve_ammo)
 
 func reload_weapon() -> void:
