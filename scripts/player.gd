@@ -210,6 +210,8 @@ func collect_pickup(kind: String, amount: int) -> void:
 			reserve_ammo += amount
 			weapon_changed.emit(weapon_label)
 			ammo_changed.emit(magazine, reserve_ammo)
+	if is_instance_valid(soldier_rig):
+		soldier_rig.set_weapon(current_weapon_index)
 
 func take_damage(amount: int) -> void:
 	if health <= 0:
