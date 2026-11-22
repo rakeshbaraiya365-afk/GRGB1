@@ -90,11 +90,30 @@ definitions:
         export EXPORT_PATH="$BUILD_DIRECTORY/$OUTPUT_FILE"
         echo "Using Android SDK: $ANDROID_HOME"
         echo "Using Java SDK: $JAVA_HOME"
-        echo "Resetting stale Godot 4.3 editor settings and initializing Android paths..."
+        echo "Writing explicit Godot 4.3 Android EditorSettings..."
         mkdir -p "$EDITOR_DATA_DIRECTORY"
         rm -f "$EDITOR_DATA_DIRECTORY/editor_settings-4.3.tres"
+        cat > "$EDITOR_DATA_DIRECTORY/editor_settings-4.3.tres" <<EOF
+[gd_resource type="EditorSettings" format=3]
+
+[resource]
+export/android/java_sdk_path = "$JAVA_HOME"
+export/android/android_sdk_path = "$ANDROID_SDK_ROOT"
+export/android/debug_keystore = "$DEBUG_KEYSTORE_PATH"
+export/android/debug_keystore_user = "androiddebugkey"
+export/android/debug_keystore_pass = "android"
+EOF
+        echo "Validating Android debug keystore..."
+        test -s "$DEBUG_KEYSTORE_PATH"
+        keytool -list -keystore "$DEBUG_KEYSTORE_PATH" -storepass android -alias androiddebugkey >/dev/null
+        echo "Validating Godot Android export templates..."
+        TEMPLATE_VERSION=$(echo "$GODOT_VERSION" | sed 's/-/./')
+        TEMPLATE_PATH="$EXPORT_TEMPLATES_DIRECTORY/$TEMPLATE_VERSION"
+        test -s "$TEMPLATE_PATH/android_debug.apk"
+        test -s "$TEMPLATE_PATH/android_release.apk"
+        echo "Android SDK, Java, keystore, and templates are present."
         "$ANDROID_HOME/platform-tools/adb" start-server || true
-        "$GODOT" --headless --editor --path "$PROJECT_PATH" --quit
+        "$GODOT" --headless --editor --path "$PROJECT_PATH" --verbose --quit
         "$GODOT" --headless --path "$PROJECT_PATH" --verbose --export-debug "$EXPORT_PRESET" "$EXPORT_PATH"
 
     - &gather_files
