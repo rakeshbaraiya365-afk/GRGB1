@@ -39,6 +39,24 @@ definitions:
         cp -R "$BUILD_DIRECTORY/template_unpack/templates/." "$TEMPLATE_PATH/"
         echo "Godot templates installed at $TEMPLATE_PATH"
 
+    - &install_android_sdk_components
+      name: Install Android SDK platform and build tools
+      script: |
+        set -e
+        export ANDROID_HOME="$ANDROID_SDK_ROOT"
+        if [ -x "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
+          SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+        else
+          SDKMANAGER=$(find "$ANDROID_SDK_ROOT/cmdline-tools" -name sdkmanager -type f | head -n 1)
+        fi
+        if [ -z "$SDKMANAGER" ] || [ ! -x "$SDKMANAGER" ]; then
+          echo "Android sdkmanager not found under $ANDROID_SDK_ROOT"
+          exit 1
+        fi
+        yes | "$SDKMANAGER" --licenses >/dev/null 2>&1 || true
+        "$SDKMANAGER" "platform-tools" "platforms;android-28" "build-tools;28.0.0"
+        ls -la "$ANDROID_SDK_ROOT/build-tools/28.0.0"
+
     - &export_project
       name: Export GRBG 1 Android APK
       script: |
@@ -80,6 +98,7 @@ workflows:
     scripts:
       - *install_godot
       - *install_godot_export_templates
+      - *install_android_sdk_components
       - *export_project
       - *gather_files
     artifacts:
