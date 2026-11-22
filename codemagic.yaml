@@ -1,131 +1,3 @@
-definitions:
-  environment:
-    godot_environment:
-      vars: &godot_variables
-        GODOT_VERSION: 4.3-stable
-        GODOT_URL: https://github.com/godotengine/godot-builds/releases/download
-        GODOT: Godot.app/Contents/MacOS/Godot
-        PROJECT_PATH: /Users/builder/clone
-        BUILD_DIRECTORY: /Users/builder/Downloads/builds
-        EDITOR_DATA_DIRECTORY: /Users/builder/Library/Application Support/Godot
-        EXPORT_TEMPLATES_DIRECTORY: /Users/builder/Library/Application Support/Godot/export_templates
-        EXPORT_PRESET: Android
-        OUTPUT_FILE: GRBG1.apk
-
-  scripts:
-    - &install_godot
-      name: Install Godot 4.3
-      script: |
-        set -e
-        FILE="Godot_v${GODOT_VERSION}_macos.universal.zip"
-        URL="${GODOT_URL}/${GODOT_VERSION}/${FILE}"
-        curl -L --fail "$URL" -o "$FILE"
-        unzip -q -o "$FILE"
-        chmod +x "$GODOT"
-        "$GODOT" --version
-
-    - &install_godot_export_templates
-      name: Install matching Android export templates
-      script: |
-        set -e
-        FILE="Godot_v${GODOT_VERSION}_export_templates.tpz"
-        URL="${GODOT_URL}/${GODOT_VERSION}/${FILE}"
-        curl -L --fail "$URL" -o "$FILE"
-        mkdir -p "$BUILD_DIRECTORY/template_unpack"
-        unzip -q -o "$FILE" -d "$BUILD_DIRECTORY/template_unpack"
-        TEMPLATE_VERSION=$(echo "$GODOT_VERSION" | sed 's/-/./')
-        TEMPLATE_PATH="$EXPORT_TEMPLATES_DIRECTORY/$TEMPLATE_VERSION"
-        mkdir -p "$TEMPLATE_PATH"
-        cp -R "$BUILD_DIRECTORY/template_unpack/templates/." "$TEMPLATE_PATH/"
-        echo "Godot templates installed at $TEMPLATE_PATH"
-
-    - &install_android_sdk_components
-      name: Install Android SDK 34 and matching Build Tools
-      script: |
-        set -e
-        : "${ANDROID_SDK_ROOT:?Codemagic did not provide ANDROID_SDK_ROOT}"
-        export ANDROID_HOME="$ANDROID_SDK_ROOT"
-        if [ -x "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
-          SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
-        else
-          SDKMANAGER=$(find "$ANDROID_SDK_ROOT/cmdline-tools" -name sdkmanager -type f | head -n 1)
-        fi
-        if [ -z "$SDKMANAGER" ] || [ ! -x "$SDKMANAGER" ]; then
-          echo "Android sdkmanager not found under $ANDROID_SDK_ROOT"
-          exit 1
-        fi
-        yes | "$SDKMANAGER" --sdk_root="$ANDROID_SDK_ROOT" --licenses >/dev/null 2>&1 || true
-        "$SDKMANAGER" --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-34" "build-tools;34.0.0" "cmdline-tools;latest" "cmake;3.10.2.4988404" "ndk;23.2.8568313"
-        test -x "$ANDROID_SDK_ROOT/platform-tools/adb"
-        test -x "$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner"
-        ls -la "$ANDROID_SDK_ROOT/build-tools/34.0.0"
-        echo "Android SDK root: $ANDROID_SDK_ROOT"
-
-    - &export_project
-      name: Export GRBG 1 Android APK
-      script: |
-        set -e
-        mkdir -p "$BUILD_DIRECTORY"
-        export ANDROID_HOME="$ANDROID_SDK_ROOT"
-        export ANDROID_SDK_ROOT="$ANDROID_SDK_ROOT"
-        export JAVA_HOME=$(/usr/libexec/java_home -v 17)
-        export PATH="$JAVA_HOME/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
-        export DEBUG_KEYSTORE_PATH="$BUILD_DIRECTORY/grbg1-debug.keystore"
-        test -x "$JAVA_HOME/bin/java"
-        test -x "$ANDROID_SDK_ROOT/platform-tools/adb"
-        test -d "$ANDROID_SDK_ROOT/platforms/android-34"
-        test -d "$ANDROID_SDK_ROOT/build-tools/34.0.0"
-        test -d "$ANDROID_SDK_ROOT/cmdline-tools/latest"
-        test -d "$ANDROID_SDK_ROOT/ndk/23.2.8568313"
-        test -d "$ANDROID_SDK_ROOT/cmake/3.10.2.4988404"
-        keytool -genkeypair -v -keystore "$DEBUG_KEYSTORE_PATH" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
-        export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$DEBUG_KEYSTORE_PATH"
-        export GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey
-        export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android
-        echo "GODOT_ANDROID_KEYSTORE_DEBUG_PATH=$DEBUG_KEYSTORE_PATH" >> "$CM_ENV"
-        echo "GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey" >> "$CM_ENV"
-        echo "GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android" >> "$CM_ENV"
-        echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> "$CM_ENV"
-        echo "JAVA_HOME=$JAVA_HOME" >> "$CM_ENV"
-        export EXPORT_PATH="$BUILD_DIRECTORY/$OUTPUT_FILE"
-        echo "Using Android SDK: $ANDROID_HOME"
-        echo "Using Java SDK: $JAVA_HOME"
-        echo "Writing explicit Godot 4.3 Android EditorSettings..."
-        mkdir -p "$EDITOR_DATA_DIRECTORY"
-        rm -f "$EDITOR_DATA_DIRECTORY/editor_settings-4.3.tres"
-        cat > "$EDITOR_DATA_DIRECTORY/editor_settings-4.3.tres" <<EOF
-[gd_resource type="EditorSettings" format=3]
-
-[resource]
-export/android/java_sdk_path = "$JAVA_HOME"
-export/android/android_sdk_path = "$ANDROID_SDK_ROOT"
-export/android/debug_keystore = "$DEBUG_KEYSTORE_PATH"
-export/android/debug_keystore_user = "androiddebugkey"
-export/android/debug_keystore_pass = "android"
-EOF
-        echo "Validating Android debug keystore..."
-        test -s "$DEBUG_KEYSTORE_PATH"
-        keytool -list -keystore "$DEBUG_KEYSTORE_PATH" -storepass android -alias androiddebugkey >/dev/null
-        echo "Validating Godot Android export templates..."
-        TEMPLATE_VERSION=$(echo "$GODOT_VERSION" | sed 's/-/./')
-        TEMPLATE_PATH="$EXPORT_TEMPLATES_DIRECTORY/$TEMPLATE_VERSION"
-        test -s "$TEMPLATE_PATH/android_debug.apk"
-        test -s "$TEMPLATE_PATH/android_release.apk"
-        echo "Android SDK, Java, keystore, and templates are present."
-        "$ANDROID_HOME/platform-tools/adb" start-server || true
-        "$GODOT" --headless --editor --path "$PROJECT_PATH" --verbose --quit
-        "$GODOT" --headless --path "$PROJECT_PATH" --verbose --export-debug "$EXPORT_PRESET" "$EXPORT_PATH"
-
-    - &gather_files
-      name: Collect APK
-      script: |
-        set -e
-        test -s "$BUILD_DIRECTORY/$OUTPUT_FILE"
-        ls -lh "$BUILD_DIRECTORY/$OUTPUT_FILE"
-
-  artifacts:
-    - &apk_artifact /Users/builder/Downloads/builds/GRBG1.apk
-
 workflows:
   godot-android-workflow:
     name: GRBG 1 Android APK
@@ -135,12 +7,91 @@ workflows:
     environment:
       java: 17
       vars:
-        <<: *godot_variables
+        GODOT_VERSION: 4.3-stable
+        GODOT_URL: https://github.com/godotengine/godot-builds/releases/download
+        GODOT: Godot.app/Contents/MacOS/Godot
+        PROJECT_PATH: /Users/builder/clone
+        BUILD_DIRECTORY: /Users/builder/Downloads/builds
+        EDITOR_DATA_DIRECTORY: /Users/builder/Library/Application Support/Godot
+        EXPORT_TEMPLATES_DIRECTORY: /Users/builder/Library/Application Support/Godot/export_templates
+        EXPORT_PRESET: Android
+        OUTPUT_FILE: GRBG1.apk
     scripts:
-      - *install_godot
-      - *install_godot_export_templates
-      - *install_android_sdk_components
-      - *export_project
-      - *gather_files
+      - name: Install Godot 4.3
+        script: |
+          set -e
+          FILE="Godot_v${GODOT_VERSION}_macos.universal.zip"
+          URL="${GODOT_URL}/${GODOT_VERSION}/${FILE}"
+          curl -L --fail "$URL" -o "$FILE"
+          unzip -q -o "$FILE"
+          chmod +x "$GODOT"
+          "$GODOT" --version
+
+      - name: Install matching Android export templates
+        script: |
+          set -e
+          FILE="Godot_v${GODOT_VERSION}_export_templates.tpz"
+          URL="${GODOT_URL}/${GODOT_VERSION}/${FILE}"
+          curl -L --fail "$URL" -o "$FILE"
+          mkdir -p "$BUILD_DIRECTORY/template_unpack"
+          unzip -q -o "$FILE" -d "$BUILD_DIRECTORY/template_unpack"
+          TEMPLATE_VERSION=$(echo "$GODOT_VERSION" | sed 's/-/./')
+          TEMPLATE_PATH="$EXPORT_TEMPLATES_DIRECTORY/$TEMPLATE_VERSION"
+          mkdir -p "$TEMPLATE_PATH"
+          cp -R "$BUILD_DIRECTORY/template_unpack/templates/." "$TEMPLATE_PATH/"
+          test -s "$TEMPLATE_PATH/android_debug.apk"
+          test -s "$TEMPLATE_PATH/android_release.apk"
+
+      - name: Install Android SDK components
+        script: |
+          set -e
+          : "${ANDROID_SDK_ROOT:?Codemagic did not provide ANDROID_SDK_ROOT}"
+          export ANDROID_HOME="$ANDROID_SDK_ROOT"
+          if [ -x "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
+            SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          else
+            SDKMANAGER=$(find "$ANDROID_SDK_ROOT/cmdline-tools" -name sdkmanager -type f | head -n 1)
+          fi
+          if [ -z "$SDKMANAGER" ] || [ ! -x "$SDKMANAGER" ]; then
+            echo "Android sdkmanager not found"
+            exit 1
+          fi
+          yes | "$SDKMANAGER" --sdk_root="$ANDROID_SDK_ROOT" --licenses >/dev/null 2>&1 || true
+          "$SDKMANAGER" --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-34" "build-tools;34.0.0" "cmdline-tools;latest" "cmake;3.10.2.4988404" "ndk;23.2.8568313"
+          test -x "$ANDROID_SDK_ROOT/platform-tools/adb"
+          test -x "$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner"
+
+      - name: Export GRBG 1 Android APK
+        script: |
+          set -e
+          mkdir -p "$BUILD_DIRECTORY"
+          export ANDROID_HOME="$ANDROID_SDK_ROOT"
+          export ANDROID_SDK_ROOT="$ANDROID_SDK_ROOT"
+          export JAVA_HOME=$(/usr/libexec/java_home -v 17)
+          export PATH="$JAVA_HOME/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
+          export DEBUG_KEYSTORE_PATH="$BUILD_DIRECTORY/grbg1-debug.keystore"
+          test -x "$JAVA_HOME/bin/java"
+          test -d "$ANDROID_SDK_ROOT/platforms/android-34"
+          test -d "$ANDROID_SDK_ROOT/build-tools/34.0.0"
+          test -d "$ANDROID_SDK_ROOT/ndk/23.2.8568313"
+          test -d "$ANDROID_SDK_ROOT/cmake/3.10.2.4988404"
+          keytool -genkeypair -v -keystore "$DEBUG_KEYSTORE_PATH" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          mkdir -p "$EDITOR_DATA_DIRECTORY"
+          rm -f "$EDITOR_DATA_DIRECTORY/editor_settings-4.3.tres"
+          cat > "$EDITOR_DATA_DIRECTORY/editor_settings-4.3.tres" <<EOF
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/java_sdk_path = "$JAVA_HOME"
+          export/android/android_sdk_path = "$ANDROID_SDK_ROOT"
+          export/android/debug_keystore = "$DEBUG_KEYSTORE_PATH"
+          export/android/debug_keystore_user = "androiddebugkey"
+          export/android/debug_keystore_pass = "android"
+          EOF
+          "$ANDROID_HOME/platform-tools/adb" start-server || true
+          "$GODOT" --headless --editor --path "$PROJECT_PATH" --verbose --quit
+          "$GODOT" --headless --path "$PROJECT_PATH" --verbose --export-debug "$EXPORT_PRESET" "$BUILD_DIRECTORY/$OUTPUT_FILE"
+          test -s "$BUILD_DIRECTORY/$OUTPUT_FILE"
+
     artifacts:
-      - *apk_artifact
+      - /Users/builder/Downloads/builds/GRBG1.apk
