@@ -385,8 +385,8 @@ func _save_profile() -> void:
 	cfg.load("user://grbg_profile.cfg")
 	cfg.save("user://grbg_profile.cfg")
 	_set_status("LOADOUT SAVED ON THIS DEVICE")
-	if is_instance_valid(section_overlay):
-		section_overlay.queue_free()
+	if is_instance_valid(section_layer):
+		section_layer.queue_free()
 
 func _panel_style(color: Color, radius: int) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
