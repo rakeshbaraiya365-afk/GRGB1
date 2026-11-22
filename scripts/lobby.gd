@@ -1,6 +1,6 @@
 extends Node3D
 
-var showcase: Node3D
+var showcase: GRBGSoldierRig
 var status_label: Label
 var section_overlay: Control
 var section_layer: CanvasLayer
