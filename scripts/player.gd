@@ -41,6 +41,9 @@ var weapon_label := "ASSAULT RIFLE"
 func _ready() -> void:
 	_build_collision()
 	_build_visual()
+	var loadout := ConfigFile.new()
+	if loadout.load("user://grbg_profile.cfg") == OK:
+		select_weapon(int(loadout.get_value("profile", "weapon_index", 0)))
 	_build_camera()
 	health_changed.emit(health, max_health)
 	ammo_changed.emit(magazine, reserve_ammo)
