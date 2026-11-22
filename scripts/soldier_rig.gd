@@ -9,6 +9,7 @@ var rifle: Node3D
 var muzzle: MeshInstance3D
 var animation_clock := 0.0
 var movement_speed := 0.0
+var airborne_state := false
 var firing_flash := 0.0
 var base_tint := Color(0.20, 0.29, 0.19)
 var uniform_material: StandardMaterial3D
@@ -114,8 +115,9 @@ func _build_rig() -> void:
 	muzzle.scale = Vector3.ZERO
 	set_weapon(weapon_index)
 
-func set_motion(speed: float, aiming: bool = false, firing: bool = false) -> void:
+func set_motion(speed: float, aiming: bool = false, firing: bool = false, airborne: bool = false) -> void:
 	movement_speed = clampf(speed, 0.0, 1.0)
+	airborne_state = airborne
 	if aiming:
 		right_arm.rotation.x = lerpf(right_arm.rotation.x, -0.65, 0.22)
 		left_arm.rotation.x = lerpf(left_arm.rotation.x, -0.45, 0.22)
@@ -142,8 +144,12 @@ func set_uniform_tint(color: Color) -> void:
 func _process(delta: float) -> void:
 	animation_clock += delta
 	var swing := sin(animation_clock * (8.5 if movement_speed > 0.12 else 2.0)) * movement_speed * 0.62
-	left_leg.rotation.x = swing
-	right_leg.rotation.x = -swing
+	if airborne_state:
+		left_leg.rotation.x = -0.28
+		right_leg.rotation.x = 0.28
+	else:
+		left_leg.rotation.x = swing
+		right_leg.rotation.x = -swing
 	left_arm.rotation.x = -swing * 0.55
 	right_arm.rotation.x = 0.0 if movement_speed < 0.12 else swing * 0.25
 	if movement_speed > 0.12:
