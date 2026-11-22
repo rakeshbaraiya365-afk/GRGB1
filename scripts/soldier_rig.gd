@@ -12,6 +12,7 @@ var movement_speed := 0.0
 var firing_flash := 0.0
 var base_tint := Color(0.20, 0.29, 0.19)
 var uniform_material: StandardMaterial3D
+var weapon_index := 0
 
 func _ready() -> void:
 	_build_rig()
@@ -118,6 +119,17 @@ func set_motion(speed: float, aiming: bool = false, firing: bool = false) -> voi
 		left_arm.rotation.x = lerpf(left_arm.rotation.x, -0.45, 0.22)
 	if firing:
 		firing_flash = 0.07
+
+func set_weapon(index: int) -> void:
+	weapon_index = clampi(index, 0, 2)
+	if is_instance_valid(rifle):
+		match weapon_index:
+			0:
+				rifle.scale = Vector3.ONE
+			1:
+				rifle.scale = Vector3(0.82, 0.88, 0.78)
+			2:
+				rifle.scale = Vector3(1.12, 1.05, 1.18)
 
 func set_uniform_tint(color: Color) -> void:
 	base_tint = color
