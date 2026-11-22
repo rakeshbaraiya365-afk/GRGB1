@@ -399,7 +399,8 @@ func _on_player_fire(origin: Vector3, direction: Vector3, damage: int) -> void:
 	if collider != null and collider.has_method("apply_damage"):
 		var final_damage := damage
 		var hit_position: Vector3 = hit.get("position", Vector3.ZERO)
-		var headshot := collider is GRBGEnemy and hit_position.y > collider.global_position.y + 1.55
+		var enemy := collider as GRBGEnemy
+		var headshot := enemy != null and hit_position.y > enemy.global_position.y + 1.55
 		if headshot:
 			final_damage = roundi(float(damage) * 1.5)
 		collider.apply_damage(final_damage)
