@@ -20,7 +20,11 @@ func _material(color: Color, roughness: float = 0.9) -> StandardMaterial3D:
 	return m
 
 func _static_box(parent: Node3D, pos: Vector3, size: Vector3, color: Color, collidable: bool = true) -> void:
-	var body := StaticBody3D.new() if collidable else Node3D.new()
+	var body: Node3D
+	if collidable:
+		body = StaticBody3D.new()
+	else:
+		body = Node3D.new()
 	body.position = pos
 	var mesh := MeshInstance3D.new()
 	var shape := BoxMesh.new()
