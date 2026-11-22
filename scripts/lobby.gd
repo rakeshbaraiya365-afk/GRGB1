@@ -4,6 +4,7 @@ var showcase: Node3D
 var status_label: Label
 var section_overlay: Control
 
+const RIG_SCRIPT = preload("res://scripts/soldier_rig.gd")
 const ACCENT := Color(0.95, 0.48, 0.16)
 const PANEL := Color(0.035, 0.055, 0.075, 0.94)
 const MUTED := Color(0.62, 0.70, 0.76)
@@ -84,18 +85,12 @@ func _build_stage() -> void:
 	ring.position.y = 0.20
 	add_child(ring)
 
-	# Temporary in-engine mannequin while final licensed character art is being sourced.
-	showcase = Node3D.new()
+	# Reuse the articulated soldier model in the lobby preview.
+	showcase = RIG_SCRIPT.new()
+	showcase.name = "OperatorShowcase"
 	showcase.position.y = 0.22
+	showcase.scale = Vector3(1.12, 1.12, 1.12)
 	add_child(showcase)
-	_add_capsule(showcase, Vector3(0, 1.08, 0), 0.34, 1.18, Color(0.13, 0.23, 0.25))
-	_add_sphere(showcase, Vector3(0, 1.91, 0), 0.25, Color(0.24, 0.31, 0.30))
-	_add_box(showcase, Vector3(0, 1.08, -0.23), Vector3(0.58, 0.55, 0.18), Color(0.23, 0.27, 0.20))
-	_add_capsule(showcase, Vector3(-0.43, 1.12, 0), 0.13, 0.82, Color(0.16, 0.22, 0.22))
-	_add_capsule(showcase, Vector3(0.43, 1.12, 0), 0.13, 0.82, Color(0.16, 0.22, 0.22))
-	_add_capsule(showcase, Vector3(-0.18, 0.38, 0), 0.15, 0.82, Color(0.10, 0.14, 0.16))
-	_add_capsule(showcase, Vector3(0.18, 0.38, 0), 0.15, 0.82, Color(0.10, 0.14, 0.16))
-	_add_box(showcase, Vector3(0.20, 1.20, -0.48), Vector3(0.12, 0.12, 0.95), Color(0.075, 0.09, 0.09))
 
 func _add_capsule(parent: Node3D, pos: Vector3, radius: float, height: float, color: Color) -> void:
 	var mesh := MeshInstance3D.new()
@@ -340,7 +335,7 @@ func _open_section(section: String) -> void:
 			_add_choice_button(column, "SAVE LOADOUT", _save_profile)
 		"LOBBY":
 			detail.text = "SAURASHTRA ISLAND\n8 AI opponents • Solo training\nSelect your operator and starting weapon before deployment."
-		var close := Button.new()
+	var close := Button.new()
 	close.text = "CLOSE"
 	close.custom_minimum_size = Vector2(0, 48)
 	close.pressed.connect(func():
