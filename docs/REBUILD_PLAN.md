@@ -4,7 +4,9 @@
 Rebuild GRBG 1 as an original mobile battle-royale game inspired by the presentation and gameplay loop of Free Fire MAX. Do not copy Free Fire names, characters, maps, UI artwork, sounds, or proprietary assets.
 
 ## Honest current-state assessment
-The current repository is a small Godot 4.3 offline prototype. The main scene creates the world from primitive meshes at runtime. The player is represented by a capsule mesh, buildings are plain boxes, and the HUD is a collection of basic labels and buttons. The eight enemies are local AI demo bots. The five-second matchmaking is a local countdown, not online matchmaking. This is why the APK feels like a rough test scene rather than a finished game.
+GRBG 1 remains a Godot 4.3 offline prototype. The latest implementation adds an articulated procedural tactical soldier rig with idle/run movement, muzzle flash and recoil; AI enemies use the same rig. The island now has a coastal water plane, sandy shoreline, road markings, named landmarks (Mahuva Docks, Saurashtra Village, Coastal Outpost), buildings, containers, a watch tower, cover, trees and rocks. Lobby Character, Weapons and Vault pages now save a local operator skin and starting weapon; the selected weapon is loaded into the next match. Combat has three weapon profiles and a headshot damage bonus.
+
+These are procedural prototype assets, not photorealistic licensed character models, mocap animations, finished textured terrain or a production-grade map. AI bots and the five-second queue are local-only; online multiplayer is not implemented. The new scripts have been committed to GitHub, but Godot runtime parsing, Android export and on-device gameplay still need verification through Codemagic and a real Android device.
 
 ## Art direction
 - Original identity: GRBG 1; rugged coastal-island battle arena inspired by Saurashtra.
