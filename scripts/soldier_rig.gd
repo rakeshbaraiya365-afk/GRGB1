@@ -13,6 +13,7 @@ var firing_flash := 0.0
 var base_tint := Color(0.20, 0.29, 0.19)
 var uniform_material: StandardMaterial3D
 var weapon_index := 0
+var rifle_rest_z := -0.36
 
 func _ready() -> void:
 	_build_rig()
@@ -119,6 +120,7 @@ func set_motion(speed: float, aiming: bool = false, firing: bool = false) -> voi
 		left_arm.rotation.x = lerpf(left_arm.rotation.x, -0.45, 0.22)
 	if firing:
 		firing_flash = 0.07
+		right_arm.rotation.x = -0.48
 
 func set_weapon(index: int) -> void:
 	weapon_index = clampi(index, 0, 2)
@@ -147,6 +149,7 @@ func _process(delta: float) -> void:
 		position.y = absf(sin(animation_clock * 8.5)) * 0.035
 	else:
 		position.y = sin(animation_clock * 1.8) * 0.008
+	rifle.position.z = lerpf(rifle.position.z, rifle_rest_z + (0.10 if firing_flash > 0.0 else 0.0), 0.42)
 	if firing_flash > 0.0:
 		firing_flash -= delta
 		muzzle.scale = Vector3.ONE * (1.0 + randf() * 0.5)
