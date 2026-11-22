@@ -92,6 +92,7 @@ func _build_stage() -> void:
 	var saved_profile := ConfigFile.new()
 	if saved_profile.load("user://grbg_profile.cfg") == OK:
 		showcase.set_uniform_tint(saved_profile.get_value("profile", "character_color", Color(0.20, 0.29, 0.19)))
+		showcase.set_weapon(int(saved_profile.get_value("profile", "weapon_index", 0)))
 	showcase.position.y = 0.22
 	showcase.scale = Vector3(1.12, 1.12, 1.12)
 	add_child(showcase)
@@ -365,6 +366,8 @@ func _select_character(character_name: String, color: Color) -> void:
 	cfg.load("user://grbg_profile.cfg")
 	cfg.set_value("profile", "character_name", character_name)
 	cfg.set_value("profile", "character_color", color)
+	if is_instance_valid(showcase):
+		showcase.set_uniform_tint(color)
 	cfg.save("user://grbg_profile.cfg")
 	_set_status("OPERATOR SAVED: " + character_name)
 	if is_instance_valid(section_layer):
@@ -374,6 +377,8 @@ func _select_weapon(index: int) -> void:
 	var cfg := ConfigFile.new()
 	cfg.load("user://grbg_profile.cfg")
 	cfg.set_value("profile", "weapon_index", clampi(index, 0, 2))
+	if is_instance_valid(showcase):
+		showcase.set_weapon(clampi(index, 0, 2))
 	cfg.save("user://grbg_profile.cfg")
 	var names := ["ASSAULT RIFLE", "SMG", "SHOTGUN"]
 	_set_status("STARTING WEAPON SAVED: " + names[clampi(index, 0, 2)])
