@@ -185,6 +185,8 @@ func select_weapon(index: int) -> void:
 	reload_timer = 0.0
 	weapon_changed.emit(weapon_label)
 	ammo_changed.emit(magazine, reserve_ammo)
+	if is_instance_valid(soldier_rig):
+		soldier_rig.set_weapon(current_weapon_index)
 
 func collect_pickup(kind: String, amount: int) -> void:
 	match kind:
