@@ -40,9 +40,10 @@ definitions:
         echo "Godot templates installed at $TEMPLATE_PATH"
 
     - &install_android_sdk_components
-      name: Install Android SDK platform and build tools
+      name: Install Android SDK 34 and matching Build Tools
       script: |
         set -e
+        : "${ANDROID_SDK_ROOT:?Codemagic did not provide ANDROID_SDK_ROOT}"
         export ANDROID_HOME="$ANDROID_SDK_ROOT"
         if [ -x "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
           SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
@@ -53,26 +54,35 @@ definitions:
           echo "Android sdkmanager not found under $ANDROID_SDK_ROOT"
           exit 1
         fi
-        yes | "$SDKMANAGER" --licenses >/dev/null 2>&1 || true
-        "$SDKMANAGER" "platform-tools" "platforms;android-28" "build-tools;28.0.0"
-        ls -la "$ANDROID_SDK_ROOT/build-tools/28.0.0"
+        yes | "$SDKMANAGER" --sdk_root="$ANDROID_SDK_ROOT" --licenses >/dev/null 2>&1 || true
+        "$SDKMANAGER" --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-34" "build-tools;34.0.0" "cmdline-tools;latest" "cmake;3.10.2.4988404" "ndk;23.2.8568313"
+        test -x "$ANDROID_SDK_ROOT/platform-tools/adb"
+        test -x "$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner"
+        ls -la "$ANDROID_SDK_ROOT/build-tools/34.0.0"
+        echo "Android SDK root: $ANDROID_SDK_ROOT"
 
     - &export_project
       name: Export GRBG 1 Android APK
       script: |
         set -e
         mkdir -p "$BUILD_DIRECTORY"
+        export ANDROID_HOME="$ANDROID_SDK_ROOT"
+        export ANDROID_SDK_ROOT="$ANDROID_SDK_ROOT"
+        export JAVA_HOME=$(/usr/libexec/java_home -v 17)
+        export PATH="$JAVA_HOME/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
         export DEBUG_KEYSTORE_PATH="$BUILD_DIRECTORY/grbg1-debug.keystore"
         keytool -genkeypair -v -keystore "$DEBUG_KEYSTORE_PATH" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
         export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$DEBUG_KEYSTORE_PATH"
         export GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey
         export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android
-        export ANDROID_HOME="$ANDROID_SDK_ROOT"
         echo "GODOT_ANDROID_KEYSTORE_DEBUG_PATH=$DEBUG_KEYSTORE_PATH" >> "$CM_ENV"
         echo "GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey" >> "$CM_ENV"
         echo "GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android" >> "$CM_ENV"
         echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> "$CM_ENV"
+        echo "JAVA_HOME=$JAVA_HOME" >> "$CM_ENV"
         export EXPORT_PATH="$BUILD_DIRECTORY/$OUTPUT_FILE"
+        echo "Using Android SDK: $ANDROID_HOME"
+        echo "Using Java SDK: $JAVA_HOME"
         "$GODOT" --headless --path "$PROJECT_PATH" --export-debug "$EXPORT_PRESET" "$EXPORT_PATH"
 
     - &gather_files
